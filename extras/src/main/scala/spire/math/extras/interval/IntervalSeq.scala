@@ -235,12 +235,12 @@ object IntervalSeq {
 
   def hole[T: Order](value: T): IntervalSeq[T] = singleton(true, value, K01)
 
-  def empty[T: Order]: IntervalSeq[T] = new IntervalSeq[T](false, Array()(classTag), Array(), implicitly[Order[T]])
+  def empty[T: Order]: IntervalSeq[T] = new IntervalSeq[T](false, Array()(using classTag[T]), Array(), implicitly[Order[T]])
 
-  def all[T: Order]: IntervalSeq[T] = new IntervalSeq[T](true, Array()(classTag), Array(), implicitly[Order[T]])
+  def all[T: Order]: IntervalSeq[T] = new IntervalSeq[T](true, Array()(using classTag[T]), Array(), implicitly[Order[T]])
 
   implicit def apply[T: Order](value: Boolean): IntervalSeq[T] =
-    new IntervalSeq[T](value, Array()(classTag), Array(), implicitly[Order[T]])
+    new IntervalSeq[T](value, Array()(using classTag[T]), Array(), implicitly[Order[T]])
 
   implicit def apply[T: Order](interval: Interval[T]): IntervalSeq[T] = interval.fold {
     case (Closed(a), Closed(b)) if a == b => point(a)
@@ -265,12 +265,12 @@ object IntervalSeq {
   }
 
   private def fromTo[T: Order](a: T, ak: Byte, b: T, bk: Byte) =
-    new IntervalSeq[T](false, Array(a, b)(classTag), Array(ak, bk), implicitly[Order[T]])
+    new IntervalSeq[T](false, Array(a, b)(using classTag[T]), Array(ak, bk), implicitly[Order[T]])
 
   private def wrong: Nothing = throw new IllegalStateException("")
 
   private def singleton[T: Order](belowAll: Boolean, value: T, kind: Byte): IntervalSeq[T] =
-    new IntervalSeq(belowAll, Array(value)(classTag), Array(kind), implicitly[Order[T]])
+    new IntervalSeq(belowAll, Array(value)(using classTag[T]), Array(kind), implicitly[Order[T]])
 
   final private val K00 = 0
 
@@ -320,7 +320,7 @@ object IntervalSeq {
 
     private[this] val order = lhs.order
 
-    private[this] val r = Array.ofDim[T](a.length + b.length)(classTag)
+    private[this] val r = Array.ofDim[T](a.length + b.length)(using classTag[T])
 
     private[this] val rk = new Array[Byte](a.length + b.length)
 

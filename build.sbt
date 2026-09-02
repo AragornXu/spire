@@ -27,13 +27,43 @@ lazy val apacheCommonsMath3Version = "3.6.1"
 
 val Scala213 = "2.13.16"
 val Scala3 = "3.2.2"
+val ReifiedScala3 = "3.10.0-RC1-bin-SNAPSHOT-nonbootstrapped"
+val ReifiedLibrary = "3.10.0-RC1-bin-SNAPSHOT"
+
+lazy val reifiedJvmSettings = Seq(
+  autoScalaLibrary := scalaVersion.value != ReifiedScala3,
+  libraryDependencies ++= {
+    if (scalaVersion.value == ReifiedScala3)
+      Seq(
+        scalaOrganization.value % "scala3-library_3" % ReifiedLibrary,
+        scalaOrganization.value % "scala-library" % ReifiedLibrary
+      )
+    else Seq.empty
+  },
+  Compile / run / fork := scalaVersion.value == ReifiedScala3,
+  Test / fork := scalaVersion.value == ReifiedScala3
+)
+
+lazy val stockMacroCompilerSettings = Seq(
+  scalaVersion := {
+    val targetScalaVersion = (ThisBuild / scalaVersion).value
+    if (targetScalaVersion == ReifiedScala3) Scala3 else targetScalaVersion
+  }
+)
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 ThisBuild / tlBaseVersion := "0.18"
+ThisBuild / tlJdkRelease := {
+  val sv = scalaVersion.value
+  if (sv.endsWith("-nonbootstrapped")) None
+  else Some(8)
+}
 
-ThisBuild / scalaVersion := Scala213
-ThisBuild / crossScalaVersions := Seq(Scala213, Scala3)
+// ThisBuild / scalaVersion := Scala213
+// ThisBuild / crossScalaVersions := Seq(Scala213, Scala3)
+ThisBuild / scalaVersion := ReifiedScala3
+ThisBuild / crossScalaVersions := Seq(Scala213, Scala3, ReifiedScala3)
 ThisBuild / githubWorkflowJavaVersions := Seq("8", "11", "17").map(JavaSpec.temurin(_))
 
 ThisBuild / homepage := Some(url("https://typelevel.org/spire/"))
@@ -66,7 +96,7 @@ lazy val root = tlCrossRootProject
 lazy val platform = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .settings(moduleName := "spire-platform")
   .settings(spireSettings: _*)
-  .jvmSettings(commonJvmSettings: _*)
+  .jvmSettings((commonJvmSettings ++ reifiedJvmSettings): _*)
   .jsSettings(commonJsSettings: _*)
   .dependsOn(macros, util)
 
@@ -77,13 +107,14 @@ lazy val macros = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .settings(scalaCheckSettings: _*)
   .settings(munitSettings: _*)
   .jvmSettings(commonJvmSettings: _*)
+  .jvmSettings(stockMacroCompilerSettings: _*)
   .jsSettings(commonJsSettings: _*)
 
 lazy val util = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .crossType(CrossType.Pure)
   .settings(moduleName := "spire-util")
   .settings(spireSettings: _*)
-  .jvmSettings(commonJvmSettings: _*)
+  .jvmSettings((commonJvmSettings ++ reifiedJvmSettings): _*)
   .jsSettings(commonJsSettings: _*)
   .dependsOn(macros)
 
@@ -92,7 +123,7 @@ lazy val core = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .settings(moduleName := "spire")
   .settings(spireSettings: _*)
   .settings(coreSettings: _*)
-  .jvmSettings(commonJvmSettings: _*)
+  .jvmSettings((commonJvmSettings ++ reifiedJvmSettings): _*)
   .jsSettings(commonJsSettings: _*)
   .dependsOn(macros, platform, util)
 
@@ -101,7 +132,7 @@ lazy val extras = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .settings(moduleName := "spire-extras")
   .settings(spireSettings: _*)
   .settings(extrasSettings: _*)
-  .jvmSettings(commonJvmSettings: _*)
+  .jvmSettings((commonJvmSettings ++ reifiedJvmSettings): _*)
   .jsSettings(commonJsSettings: _*)
   .dependsOn(macros, platform, util, core)
 
@@ -113,6 +144,7 @@ lazy val docs = project
   .settings(commonSettings: _*)
   .settings(spireSettings: _*)
   .settings(commonJvmSettings: _*)
+  .settings(reifiedJvmSettings: _*)
 
 lazy val examples = project
   .settings(moduleName := "spire-examples")
@@ -125,6 +157,7 @@ lazy val examples = project
   )
   .enablePlugins(NoPublishPlugin)
   .settings(commonJvmSettings)
+  .settings(reifiedJvmSettings)
   .dependsOn(core.jvm, extras.jvm)
 
 lazy val laws = crossProject(JSPlatform, JVMPlatform, NativePlatform)
@@ -137,7 +170,7 @@ lazy val laws = crossProject(JSPlatform, JVMPlatform, NativePlatform)
       "org.scalacheck" %%% "scalacheck" % scalaCheckVersion
     )
   )
-  .jvmSettings(commonJvmSettings: _*)
+  .jvmSettings((commonJvmSettings ++ reifiedJvmSettings): _*)
   .jsSettings(commonJsSettings: _*)
   .dependsOn(core, extras)
 
@@ -147,7 +180,7 @@ lazy val tests = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .settings(spireSettings: _*)
   .settings(munitSettings: _*)
   .enablePlugins(NoPublishPlugin)
-  .jvmSettings(commonJvmSettings: _*)
+  .jvmSettings((commonJvmSettings ++ reifiedJvmSettings): _*)
   .jsSettings(commonJsSettings: _*)
   .dependsOn(core, extras, laws)
 
@@ -165,12 +198,19 @@ lazy val benchmark: Project = project
     )
   )
   .enablePlugins(JmhPlugin)
+  .settings(reifiedJvmSettings)
   .dependsOn(core.jvm, extras.jvm)
 
 lazy val buildSettings = Seq(
+  allDependencies ~= { deps =>
+    deps.filterNot(_.configurations.exists(_.startsWith("scala-doc-tool")))
+  },
   scalacOptions := {
-    if (tlIsScala3.value)
-      scalacOptions.value.filterNot(Set("-source:3.0-migration"))
+    val opts = scalacOptions.value.filterNot(_.startsWith("-source:")) :+ "-nowarn"
+    if (tlIsScala3.value && scalaVersion.value.endsWith("-nonbootstrapped"))
+      opts :+ "-source:3.2"
+    else if (tlIsScala3.value)
+      opts
     else
       scalacOptions.value
   }

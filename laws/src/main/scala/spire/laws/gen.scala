@@ -184,27 +184,66 @@ object gen {
       (15, boundedInterval[A])
     )
 
+  // def freeMonoid[A: Arbitrary]: Gen[FreeMonoid[A]] =
+  //   for {
+  //     as <- arbitrary[List[A]]
+  //   } yield as.foldLeft(FreeMonoid.empty[A]) { (acc, a) =>
+  //     acc |+| FreeMonoid(a)
+  //   }
+
   def freeMonoid[A: Arbitrary]: Gen[FreeMonoid[A]] =
-    for {
-      as <- arbitrary[List[A]]
-    } yield as.foldLeft(FreeMonoid.empty[A]) { (acc, a) =>
-      acc |+| FreeMonoid(a)
+    arbitrary[List[A]].map { as =>
+      var xs = as
+      var acc = FreeMonoid.empty[A]
+      while xs.nonEmpty do
+        val a = xs.head
+        acc = acc |+| FreeMonoid(a)
+        xs = xs.tail
+      acc
     }
 
-  def freeGroup[A: Arbitrary]: Gen[FreeGroup[A]] =
-    for {
-      aas <- arbitrary[List[Either[A, A]]]
-    } yield aas.foldLeft(FreeGroup.id[A]) {
-      case (acc, Left(a))  => acc |-| FreeGroup(a)
-      case (acc, Right(a)) => acc |+| FreeGroup(a)
-    }
+  // def freeGroup[A: Arbitrary]: Gen[FreeGroup[A]] =
+  //   for {
+  //     aas <- arbitrary[List[Either[A, A]]]
+  //   } yield aas.foldLeft(FreeGroup.id[A]) {
+  //     case (acc, Left(a))  => acc |-| FreeGroup(a)
+  //     case (acc, Right(a)) => acc |+| FreeGroup(a)
+  //   }
 
-  def freeAbGroup[A: Arbitrary]: Gen[FreeAbGroup[A]] =
-    for {
-      tpls <- arbitrary[List[(A, Short)]]
-    } yield tpls.foldLeft(FreeAbGroup.id[A]) { case (acc, (a, n)) =>
-      acc |+| Group[FreeAbGroup[A]].combineN(FreeAbGroup(a), n.toInt)
-    }
+  private def makeFreeGroup[A](aas: List[Either[A, A]]): FreeGroup[A] =
+    var xs = aas
+    var acc = FreeGroup.id[A]
+    while xs.nonEmpty do
+      val x = xs.head
+      x match
+        case Left(a) => acc = acc |-| FreeGroup(a)
+        case Right(a) => acc = acc |+| FreeGroup(a)
+      xs = xs.tail
+    acc
+
+  def freeGroup[A: Arbitrary]: Gen[FreeGroup[A]] = arbitrary[List[Either[A, A]]].map { aas => makeFreeGroup[A](aas) }
+
+  // def freeAbGroup[A: Arbitrary]: Gen[FreeAbGroup[A]] =
+  //   for {
+  //     tpls <- arbitrary[List[(A, Short)]]
+  //   } yield tpls.foldLeft(FreeAbGroup.id[A]) { case (acc, (a, n)) =>
+  //     acc |+| Group[FreeAbGroup[A]].combineN(FreeAbGroup(a), n.toInt)
+  //   }
+
+  private def makeFreeAbGroup[A](tpls: List[(A, Short)]): FreeAbGroup[A] =
+    var xs = tpls
+    var acc = FreeAbGroup.id[A]
+    while xs.nonEmpty do
+      val tpl = xs.head
+      val a = tpl._1
+      val n = tpl._2
+      val elem = FreeAbGroup(a)
+      val repeated = Group[FreeAbGroup[A]].combineN(elem, n.toInt)
+      acc = acc |+| repeated
+      xs = xs.tail
+    acc
+
+  def freeAbGroup[A: Arbitrary]: Gen[FreeAbGroup[A]] = arbitrary[List[(A, Short)]].map { tpls => makeFreeAbGroup[A](tpls)}
 
   val perm: Gen[Perm] =
     Gen
