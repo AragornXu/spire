@@ -34,9 +34,11 @@ import scala.annotation.nowarn
 
 object Polynomial extends PolynomialInstances {
 
-  def dense[@sp(Double) C: Semiring: Eq: ClassTag](coeffs: Array[C]): PolyDense[C] = {
+  def dense[@sp(Double) C](coeffs: Array[C])(implicit
+    semiring: Semiring[C], eq: Eq[C], classTag: ClassTag[C]
+  ): PolyDense[C] = {
     var i = coeffs.length
-    while (i > 0 && (coeffs(i - 1) === Semiring[C].zero)) i -= 1
+    while (i > 0 && (coeffs(i - 1) === semiring.zero)) i -= 1
     if (i == coeffs.length) {
       new PolyDense(coeffs)
     } else {
