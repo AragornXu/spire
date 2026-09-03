@@ -1,18 +1,3 @@
-/*
- * **********************************************************************\
- * * Project                                                              **
- * *       ______  ______   __    ______    ____                          **
- * *      / ____/ / __  /  / /   / __  /   / __/     (c) 2011-2021        **
- * *     / /__   / /_/ /  / /   / /_/ /   / /_                            **
- * *    /___  / / ____/  / /   / __  /   / __/   Erik Osheim, Tom Switzer **
- * *   ____/ / / /      / /   / / | |   / /__                             **
- * *  /_____/ /_/      /_/   /_/  |_|  /____/     All rights reserved.    **
- * *                                                                      **
- * *      Redistribution and use permitted under the MIT license.         **
- * *                                                                      **
- * \***********************************************************************
- */
-
 package spire
 package benchmark
 
@@ -22,10 +7,6 @@ import spire.algebra.{CRing, Eq, Field, Rig, VectorSpace}
 import spire.implicits._
 import spire.math.{Complex, Jet, Polynomial, Quaternion}
 
-/**
- * A small manual benchmark/smoke test for the reified compiler. Unlike the synthetic bcGen.Spire workloads, every value
- * operated on here is a real Spire data structure.
- */
 object ReifiedSpireBenchmark {
   final private val Size = 64
   final private val Repeats = 20
@@ -171,7 +152,11 @@ object ReifiedSpireBenchmark {
     require(jetDoubleResult == jetFloatResult.toDouble)
 
     val libraryLocation = classOf[scala.collection.mutable.ListBuffer[_]].getProtectionDomain.getCodeSource.getLocation
+    val algebraLocation = classOf[_root_.algebra.ring.Semiring[_]].getProtectionDomain.getCodeSource.getLocation
+    val catsKernelLocation = classOf[_root_.cats.kernel.Eq[_]].getProtectionDomain.getCodeSource.getLocation
     println(s"scala-library: $libraryLocation")
+    println(s"algebra: $algebraLocation")
+    println(s"cats-kernel: $catsKernelLocation")
     println(s"scala-library version: ${scala.util.Properties.versionNumberString}")
     println(s"complex: $complexIntResult")
     println(s"quaternion: $quaternionIntResult")

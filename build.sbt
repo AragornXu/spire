@@ -20,6 +20,8 @@ lazy val munit = "1.0.0-M7"
 lazy val munitDiscipline = "2.0.0-M3"
 
 lazy val algebraVersion = "2.9.0"
+lazy val reifiedCatsKernelVersion = "2.9.0-reified-SNAPSHOT"
+lazy val reifiedAlgebraVersion = "2.9.0-reified-SNAPSHOT"
 
 lazy val apfloatVersion = "1.10.1"
 lazy val jscienceVersion = "4.3.1"
@@ -37,6 +39,14 @@ lazy val reifiedJvmSettings = Seq(
       Seq(
         scalaOrganization.value % "scala3-library_3" % ReifiedLibrary,
         scalaOrganization.value % "scala-library" % ReifiedLibrary
+      )
+    else Seq.empty
+  },
+  dependencyOverrides ++= {
+    if (scalaVersion.value == ReifiedScala3)
+      Seq(
+        "org.typelevel" %% "cats-kernel" % reifiedCatsKernelVersion,
+        "org.typelevel" %% "algebra" % reifiedAlgebraVersion
       )
     else Seq.empty
   },
@@ -218,7 +228,9 @@ lazy val buildSettings = Seq(
 
 lazy val commonDeps = Seq(
   libraryDependencies ++= Seq(
-    "org.typelevel" %%% "algebra" % algebraVersion
+    "org.typelevel" %%% "algebra" % {
+      if (scalaVersion.value == ReifiedScala3) reifiedAlgebraVersion else algebraVersion
+    }
   )
 )
 
