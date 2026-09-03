@@ -162,7 +162,7 @@ trait FloatInstances {
   import spire.math.NumberTag
   import spire.math.NumberTag._
   implicit final val FloatTag: NumberTag[Float] =
-    new BuiltinFloatTag(0f, MinValue, MaxValue, NaN, PositiveInfinity, NegativeInfinity) {
+    new BuiltinFloatTag[Float](0f, MinValue, MaxValue, NaN, PositiveInfinity, NegativeInfinity) {
       def isInfinite(a: Float): Boolean = java.lang.Float.isInfinite(a)
       def isNaN(a: Float): Boolean = java.lang.Float.isNaN(a)
     }
