@@ -19,8 +19,6 @@ import scala.quoted.*
 import scala.collection.immutable.NumericRange
 import scala.PartialFunction.cond
 
-import spire.syntax.cfor.{RangeElem, RangeLike}
-
 def cforImpl[R: Type](init: Expr[R], test: Expr[R => Boolean], next: Expr[R => R], body: Expr[R => Unit])(using
   Quotes
 ): Expr[Unit] =
@@ -36,7 +34,7 @@ def cforImpl[R: Type](init: Expr[R], test: Expr[R => Boolean], next: Expr[R => R
   letFunc("test", test)(t => letFunc("next", next)(n => letFunc("body", body)(b => code(t, n, b))))
 end cforImpl
 
-def cforRangeMacroGen[R <: RangeLike: Type](r: Expr[R], body: Expr[RangeElem[R] => Unit])(using
+def cforRangeMacroGen[R: Type, A: Type](r: Expr[R], body: Expr[A => Unit])(using
   quotes: Quotes
 ): Expr[Unit] =
   import quotes.reflect.*
