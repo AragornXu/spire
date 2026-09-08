@@ -23,8 +23,11 @@ import spire.math._
 import spire.util.Opt
 
 final class EqOps[A](lhs: A)(using ev: Eq[A]):
-  def ===[B](rhs: B)(using ev1: B =:= A): Boolean = ev.eqv(lhs, ev1(rhs))
-  def =!=[B](rhs: B)(using ev1: B =:= A): Boolean = ev.neqv(lhs, ev1(rhs))
+  // def ===[B](rhs: B)(using ev1: B =:= A): Boolean = ev.eqv(lhs, ev1(rhs))
+  // def =!=[B](rhs: B)(using ev1: B =:= A): Boolean = ev.neqv(lhs, ev1(rhs))
+
+  def ===[B](rhs: B)(using ev1: B =:= A): Boolean = ev.eqv(lhs, rhs.asInstanceOf[A])
+  def =!=[B](rhs: B)(using ev1: B =:= A): Boolean = ev.neqv(lhs, rhs.asInstanceOf[A])
 
 final class PartialOrderOps[A](lhs: A)(using ev: PartialOrder[A]):
   def >(rhs: A): Boolean = ev.gt(lhs, rhs)
