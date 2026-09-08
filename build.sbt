@@ -211,18 +211,32 @@ lazy val benchmark: Project = project
   .settings(reifiedJvmSettings)
   .dependsOn(core.jvm, extras.jvm)
 
+lazy val reifiedBenchmark: Project = project
+  .in(file("benchmark/reified"))
+  .settings(moduleName := "spire-reified-benchmark")
+  .settings(spireSettings)
+  .enablePlugins(NoPublishPlugin)
+  .settings(commonJvmSettings)
+  .settings(reifiedJvmSettings)
+  .settings(
+    scalaVersion := ReifiedScala3,
+    crossScalaVersions := Seq(ReifiedScala3),
+  )
+  .dependsOn(core.jvm)
+
 lazy val buildSettings = Seq(
   allDependencies ~= { deps =>
     deps.filterNot(_.configurations.exists(_.startsWith("scala-doc-tool")))
   },
   scalacOptions := {
-    val opts = scalacOptions.value.filterNot(_.startsWith("-source:")) :+ "-nowarn"
+    val scalacOps = scalacOptions.value
+    val opts = scalacOps.filterNot(_.startsWith("-source:")) :+ "-nowarn"
     if (tlIsScala3.value && scalaVersion.value.endsWith("-nonbootstrapped"))
       opts :+ "-source:3.2"
     else if (tlIsScala3.value)
       opts
     else
-      scalacOptions.value
+      scalacOps
   }
 )
 
