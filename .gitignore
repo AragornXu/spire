@@ -16,3 +16,4 @@ project/metals.sbt
 .bsp/
 project/project/
 .vscode/
+benchmark/reified/src/main/scala/spire/benchmark/*.txt

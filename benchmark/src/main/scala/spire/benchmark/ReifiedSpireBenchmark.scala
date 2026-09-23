@@ -8,15 +8,15 @@ import spire.implicits._
 import spire.math.{Complex, Jet, Polynomial, Quaternion}
 
 object ReifiedSpireBenchmark {
-  final private val Size = 64
-  final private val Repeats = 20
-  final private val JetDimension = 4
+  final private val SIZE = 64
+  final private val REPEATS = 20
+  final private val JETDIMENSION = 4
 
   private def complexInputs[A: ClassTag](fromInt: Int => A): (Array[Complex[A]], Array[Complex[A]]) = {
-    val xs = Array.tabulate(Size) { i =>
+    val xs = Array.tabulate(SIZE) { i =>
       Complex(fromInt((i % 23) - 11), fromInt((i % 19) - 9))
     }
-    val ys = Array.tabulate(Size) { i =>
+    val ys = Array.tabulate(SIZE) { i =>
       Complex(fromInt((i % 17) - 8), fromInt((i % 13) - 6))
     }
     (xs, ys)
@@ -25,9 +25,9 @@ object ReifiedSpireBenchmark {
   private def complexKernel[A](xs: Array[Complex[A]], ys: Array[Complex[A]])(implicit ring: CRing[A]): Complex[A] = {
     var checksum = Complex.zero[A]
     var repeat = 0
-    while (repeat < Repeats) {
+    while (repeat < REPEATS) {
       var i = 0
-      while (i < Size) {
+      while (i < SIZE) {
         checksum = checksum + (xs(i) * ys(i) + xs(i))
         i += 1
       }
@@ -37,10 +37,10 @@ object ReifiedSpireBenchmark {
   }
 
   private def quaternionInputs[A: ClassTag](fromInt: Int => A): (Array[Quaternion[A]], Array[Quaternion[A]]) = {
-    val xs = Array.tabulate(Size) { i =>
+    val xs = Array.tabulate(SIZE) { i =>
       Quaternion(fromInt((i % 11) - 5), fromInt((i % 13) - 6), fromInt((i % 17) - 8), fromInt((i % 19) - 9))
     }
-    val ys = Array.tabulate(Size) { i =>
+    val ys = Array.tabulate(SIZE) { i =>
       Quaternion(fromInt((i % 7) - 3), fromInt((i % 9) - 4), fromInt((i % 15) - 7), fromInt((i % 21) - 10))
     }
     (xs, ys)
@@ -51,9 +51,9 @@ object ReifiedSpireBenchmark {
   ): Quaternion[A] = {
     var checksum = Quaternion.zero[A]
     var repeat = 0
-    while (repeat < Repeats) {
+    while (repeat < REPEATS) {
       var i = 0
-      while (i < Size) {
+      while (i < SIZE) {
         checksum = checksum + xs(i) * ys(i)
         i += 1
       }
@@ -66,8 +66,8 @@ object ReifiedSpireBenchmark {
     ring: Rig[A],
     eq: Eq[A]
   ): (Polynomial[A], Polynomial[A]) = {
-    val lhs = Polynomial.dense(Array.tabulate(Size)(i => fromInt((i % 7) - 3)))
-    val rhs = Polynomial.dense(Array.tabulate(Size)(i => fromInt((i % 5) - 2)))
+    val lhs = Polynomial.dense(Array.tabulate(SIZE)(i => fromInt((i % 7) - 3)))
+    val rhs = Polynomial.dense(Array.tabulate(SIZE)(i => fromInt((i % 5) - 2)))
     (lhs, rhs)
   }
 
@@ -77,7 +77,7 @@ object ReifiedSpireBenchmark {
   ): A = {
     var checksum = ring.zero
     var repeat = 0
-    while (repeat < Repeats) {
+    while (repeat < REPEATS) {
       val product = lhs * rhs
       checksum = ring.plus(checksum, product(ring.one))
       repeat += 1
@@ -87,10 +87,10 @@ object ReifiedSpireBenchmark {
 
   private def jetInputs[A: ClassTag](fromInt: Int => A): (Array[Jet[A]], Array[Jet[A]]) = {
     def derivatives(i: Int, factor: Int): Array[A] =
-      Array.tabulate(JetDimension)(d => fromInt(((i * factor + d * 3) % 11) - 5))
+      Array.tabulate(JETDIMENSION )(d => fromInt(((i * factor + d * 3) % 11) - 5))
 
-    val xs = Array.tabulate(Size)(i => Jet(fromInt((i % 17) - 8), derivatives(i, 1)))
-    val ys = Array.tabulate(Size)(i => Jet(fromInt((i % 13) - 6), derivatives(i, 2)))
+    val xs = Array.tabulate(SIZE)(i => Jet(fromInt((i % 17) - 8), derivatives(i, 1)))
+    val ys = Array.tabulate(SIZE)(i => Jet(fromInt((i % 13) - 6), derivatives(i, 2)))
     (xs, ys)
   }
 
@@ -100,13 +100,13 @@ object ReifiedSpireBenchmark {
   ): A = {
     var checksum = field.zero
     var repeat = 0
-    while (repeat < Repeats) {
+    while (repeat < REPEATS) {
       var i = 0
-      while (i < Size) {
+      while (i < SIZE) {
         val result = xs(i) * ys(i)
         checksum = field.plus(checksum, result.real)
         var d = 0
-        while (d < JetDimension) {
+        while (d < JETDIMENSION) {
           checksum = field.plus(checksum, result.infinitesimal(d))
           d += 1
         }
@@ -157,7 +157,7 @@ object ReifiedSpireBenchmark {
     println(s"scala-library: $libraryLocation")
     println(s"algebra: $algebraLocation")
     println(s"cats-kernel: $catsKernelLocation")
-    println(s"scala-library version: ${scala.util.Properties.versionNumberString}")
+    // println(s"scala-library version: ${scala.util.Properties.versionNumberString}")
     println(s"complex: $complexIntResult")
     println(s"quaternion: $quaternionIntResult")
     println(s"polynomial: $polynomialIntResult")

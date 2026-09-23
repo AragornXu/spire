@@ -20,9 +20,9 @@ import spire.implicits._
 import spire.math.ConvertableFrom
 
 object RingBenchmark {
-  private final val OuterRepeat = 20
-  private final val InnerRepeat = 100000
-  private final val Size = 64
+  private final val OUTERREPEAT = 20
+  private final val INNERREPEAT = 100000
+  private final val SIZE = 64
 
   private val intXs: Array[Int] = Array.tabulate(Size)(i => (i % 11) - 5)
   private val intYs: Array[Int] = Array.tabulate(Size)(i => (i % 7) - 3)
@@ -34,19 +34,19 @@ object RingBenchmark {
   private val expectedTotal: Long = {
     var total = 0L
     var i = 0
-    while (i < Size) {
+    while (i < SIZE) {
       total += intXs(i).toLong + intYs(i).toLong
       i += 1
     }
-    total * InnerRepeat
+    total * INNERREPEAT
   }
 
   private def benchmark[A](xs: Array[A], ys: Array[A])(implicit ring: Ring[A], convertable: ConvertableFrom[A]): Unit = {
     var total = 0L
     var repeat = 0
-    while (repeat < InnerRepeat) {
+    while (repeat < INNERREPEAT) {
       var i = 0
-      while (i < Size) {
+      while (i < SIZE) {
         val result: A = ring.plus(xs(i), ys(i))
         total += convertable.toLong(result)
         i += 1
@@ -59,7 +59,7 @@ object RingBenchmark {
   def runMono(args: Array[String]): Unit =
     BenchmarkRunner.run(args) {
       var repeat = 0
-      while (repeat < OuterRepeat) {
+      while (repeat < OUTERREPEAT) {
         benchmark[Int](intXs, intYs)
         repeat += 1
       }
@@ -68,7 +68,7 @@ object RingBenchmark {
   def runMega(args: Array[String]): Unit =
     BenchmarkRunner.run(args) {
       var repeat = 0
-      while (repeat < OuterRepeat) {
+      while (repeat < OUTERREPEAT) {
         benchmark[Int](intXs, intYs)
         benchmark[Long](longXs, longYs)
         benchmark[Double](doubleXs, doubleYs)

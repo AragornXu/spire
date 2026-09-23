@@ -233,6 +233,7 @@ lazy val buildSettings = Seq(
     val opts = scalacOps.filterNot(_.startsWith("-source:")) :+ "-nowarn"
     if (tlIsScala3.value && scalaVersion.value.endsWith("-nonbootstrapped"))
       opts :+ "-source:3.2"
+      // opts :+ "-source:3.2" :+ "-language:experimental.inlineTraits"
     else if (tlIsScala3.value)
       opts
     else

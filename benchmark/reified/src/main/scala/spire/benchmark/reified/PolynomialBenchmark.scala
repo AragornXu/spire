@@ -66,7 +66,8 @@ object PolynomialBenchmark {
       val coefficients = result.coeffsArray
       var checksum = ring.zero
       var i = 0
-      while (i < coefficients.length) {
+      val len = coefficients.length
+      while (i < len) {
         checksum = ring.plus(checksum, coefficients(i))
         i += 1
       }
