@@ -37,7 +37,7 @@ lazy val reifiedJvmSettings = Seq(
   libraryDependencies ++= {
     if (scalaVersion.value == ReifiedScala3)
       Seq(
-        scalaOrganization.value % "scala3-library_3" % ReifiedLibrary,
+        // scalaOrganization.value % "scala3-library_3" % ReifiedLibrary,
         scalaOrganization.value % "scala-library" % ReifiedLibrary
       )
     else Seq.empty

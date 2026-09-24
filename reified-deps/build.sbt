@@ -9,7 +9,7 @@ ThisBuild / crossScalaVersions := Seq(ReifiedScala3)
 ThisBuild / autoScalaLibrary := false
 ThisBuild / scalacOptions ++= Seq("-source:3.2", "-nowarn")
 ThisBuild / libraryDependencies ++= Seq(
-  "org.scala-lang" % "scala3-library_3" % ReifiedLibrary,
+  // "org.scala-lang" % "scala3-library_3" % ReifiedLibrary,
   "org.scala-lang" % "scala-library" % ReifiedLibrary
 )
 ThisBuild / Compile / packageDoc / publishArtifact := false

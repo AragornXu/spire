@@ -5,18 +5,18 @@
 #   labs jdk is called labs-21 in sdkman
 
 # result txt file:
-TARGET='$HOME/spire/benchmark/reified/src/main/scala/spire/benchmark/spire-dev-9-18.txt'
+TARGET="$HOME/spire/benchmark/reified/src/main/scala/spire/benchmark/spire-dev-afterdebug-9-23.txt"
 
 : > "$TARGET"
 
 # where the flame graph goes
-SVG_DIR='$HOME/graal/espresso/svg-after-9-18'
+SVG_DIR="$HOME/graal/espresso/svg-afterdebug-9-23"
 
 mkdir -p "$SVG_DIR"
 
-SCALA_CLASSES='$HOME/spire/benchmark/reified/target/scala-3.10.0-RC1-bin-SNAPSHOT-nonbootstrapped/classes:$HOME/spire/core/.jvm/target/scala-3.10.0-RC1-bin-SNAPSHOT-nonbootstrapped/classes:$HOME/spire/macros/.jvm/target/scala-3.2.2/classes:$HOME/spire/platform/jvm/target/scala-3.10.0-RC1-bin-SNAPSHOT-nonbootstrapped/classes:$HOME/spire/util/.jvm/target/scala-3.10.0-RC1-bin-SNAPSHOT-nonbootstrapped/classes:$HOME/.ivy2/local/org.typelevel/algebra_3/2.9.0-reified-SNAPSHOT/jars/algebra_3.jar:$HOME/.ivy2/local/org.typelevel/cats-kernel_3/2.9.0-reified-SNAPSHOT/jars/cats-kernel_3.jar:$HOME/.ivy2/local/org.scala-lang/scala3-library_3/3.10.0-RC1-bin-SNAPSHOT/jars/scala3-library_3.jar:$HOME/.ivy2/local/org.scala-lang/scala-library/3.10.0-RC1-bin-SNAPSHOT/jars/scala-library.jar'
+SCALA_CLASSES="$HOME/spire/benchmark/reified/target/scala-3.10.0-RC1-bin-SNAPSHOT-nonbootstrapped/classes:$HOME/spire/core/.jvm/target/scala-3.10.0-RC1-bin-SNAPSHOT-nonbootstrapped/classes:$HOME/spire/macros/.jvm/target/scala-3.2.2/classes:$HOME/spire/platform/jvm/target/scala-3.10.0-RC1-bin-SNAPSHOT-nonbootstrapped/classes:$HOME/spire/util/.jvm/target/scala-3.10.0-RC1-bin-SNAPSHOT-nonbootstrapped/classes:$HOME/.ivy2/local/org.typelevel/algebra_3/2.9.0-reified-SNAPSHOT/jars/algebra_3.jar:$HOME/.ivy2/local/org.typelevel/cats-kernel_3/2.9.0-reified-SNAPSHOT/jars/cats-kernel_3.jar:$HOME/.ivy2/local/org.scala-lang/scala3-library_3/3.10.0-RC1-bin-SNAPSHOT/jars/scala3-library_3.jar:$HOME/.ivy2/local/org.scala-lang/scala-library/3.10.0-RC1-bin-SNAPSHOT/jars/scala-library.jar"
 
-cd '$HOME/graal/espresso'
+cd "$HOME/graal/espresso"
 
 git log -2 >> "$TARGET"
 

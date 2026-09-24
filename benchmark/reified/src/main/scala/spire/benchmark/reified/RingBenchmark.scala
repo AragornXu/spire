@@ -24,12 +24,12 @@ object RingBenchmark {
   private final val INNERREPEAT = 100000
   private final val SIZE = 64
 
-  private val intXs: Array[Int] = Array.tabulate(Size)(i => (i % 11) - 5)
-  private val intYs: Array[Int] = Array.tabulate(Size)(i => (i % 7) - 3)
-  private val longXs: Array[Long] = Array.tabulate(Size)(i => ((i % 11) - 5).toLong)
-  private val longYs: Array[Long] = Array.tabulate(Size)(i => ((i % 7) - 3).toLong)
-  private val doubleXs: Array[Double] = Array.tabulate(Size)(i => ((i % 11) - 5).toDouble)
-  private val doubleYs: Array[Double] = Array.tabulate(Size)(i => ((i % 7) - 3).toDouble)
+  private val intXs: Array[Int] = Array.tabulate(SIZE)(i => (i % 11) - 5)
+  private val intYs: Array[Int] = Array.tabulate(SIZE)(i => (i % 7) - 3)
+  private val longXs: Array[Long] = Array.tabulate(SIZE)(i => ((i % 11) - 5).toLong)
+  private val longYs: Array[Long] = Array.tabulate(SIZE)(i => ((i % 7) - 3).toLong)
+  private val doubleXs: Array[Double] = Array.tabulate(SIZE)(i => ((i % 11) - 5).toDouble)
+  private val doubleYs: Array[Double] = Array.tabulate(SIZE)(i => ((i % 7) - 3).toDouble)
 
   private val expectedTotal: Long = {
     var total = 0L
