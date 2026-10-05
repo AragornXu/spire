@@ -20,8 +20,6 @@ lazy val munit = "1.0.0-M7"
 lazy val munitDiscipline = "2.0.0-M3"
 
 lazy val algebraVersion = "2.9.0"
-lazy val reifiedCatsKernelVersion = "2.9.0-reified-SNAPSHOT"
-lazy val reifiedAlgebraVersion = "2.9.0-reified-SNAPSHOT"
 
 lazy val apfloatVersion = "1.10.1"
 lazy val jscienceVersion = "4.3.1"
@@ -29,35 +27,75 @@ lazy val apacheCommonsMath3Version = "3.6.1"
 
 val Scala213 = "2.13.16"
 val Scala3 = "3.2.2"
-val ReifiedScala3 = "3.10.0-RC1-bin-SNAPSHOT-nonbootstrapped"
-val ReifiedLibrary = "3.10.0-RC1-bin-SNAPSHOT"
+lazy val reifiedVersions = settingKey[java.util.Properties]("Shared reified compiler and dependency versions")
+lazy val reifiedScalaVersion = settingKey[String]("Locally published reified compiler version")
+lazy val reifiedLibraryVersion = settingKey[String]("Locally published reified standard-library version")
+lazy val reifiedCatsKernelVersion = settingKey[String]("Reified Cats Kernel version")
+lazy val reifiedAlgebraVersion = settingKey[String]("Reified Algebra version")
+lazy val publishReifiedDependencies = taskKey[Unit]("Compile and publish the reified dependencies locally")
+lazy val cleanReifiedDependencies = taskKey[Unit]("Clean the reified dependency build")
+lazy val prepareReifiedDependencies = taskKey[Unit]("Publish dependencies when using the reified compiler")
+
+lazy val reifiedDependencyRoot = RootProject(uri("reified-deps/"))
+lazy val reifiedCatsKernel = ProjectRef(uri("reified-deps/"), "catsKernel")
+lazy val reifiedAlgebra = ProjectRef(uri("reified-deps/"), "algebra")
+
+ThisBuild / reifiedVersions := {
+  val properties = new java.util.Properties
+  val input = new java.io.FileInputStream((ThisBuild / baseDirectory).value / "reified-deps" / "versions.properties")
+  try properties.load(input)
+  finally input.close()
+  properties
+}
+ThisBuild / reifiedScalaVersion := reifiedVersions.value.getProperty("scalaVersion")
+ThisBuild / reifiedLibraryVersion := reifiedVersions.value.getProperty("libraryVersion")
+ThisBuild / reifiedCatsKernelVersion := reifiedVersions.value.getProperty("catsKernelVersion")
+ThisBuild / reifiedAlgebraVersion := reifiedVersions.value.getProperty("algebraVersion")
+
+ThisBuild / publishReifiedDependencies := {
+  (reifiedCatsKernel / publishLocal).value
+  (reifiedAlgebra / publishLocal).value
+}
+ThisBuild / cleanReifiedDependencies := {
+  (reifiedCatsKernel / clean).value
+  (reifiedAlgebra / clean).value
+  (reifiedDependencyRoot / clean).value
+}
 
 lazy val reifiedJvmSettings = Seq(
-  autoScalaLibrary := scalaVersion.value != ReifiedScala3,
+  prepareReifiedDependencies := Def.taskDyn {
+    if (scalaVersion.value == reifiedScalaVersion.value)
+      Def.task { (ThisBuild / publishReifiedDependencies).value }
+    else Def.task { () }
+  }.value,
+  // Publishing must finish before update resolves the local SNAPSHOT jars.
+  update := update.dependsOn(prepareReifiedDependencies).value,
+  clean := clean.dependsOn(ThisBuild / cleanReifiedDependencies).value,
+  autoScalaLibrary := scalaVersion.value != reifiedScalaVersion.value,
   libraryDependencies ++= {
-    if (scalaVersion.value == ReifiedScala3)
+    if (scalaVersion.value == reifiedScalaVersion.value)
       Seq(
-        // scalaOrganization.value % "scala3-library_3" % ReifiedLibrary,
-        scalaOrganization.value % "scala-library" % ReifiedLibrary
+        // scalaOrganization.value % "scala3-library_3" % reifiedLibraryVersion.value,
+        scalaOrganization.value % "scala-library" % reifiedLibraryVersion.value
       )
     else Seq.empty
   },
   dependencyOverrides ++= {
-    if (scalaVersion.value == ReifiedScala3)
+    if (scalaVersion.value == reifiedScalaVersion.value)
       Seq(
-        "org.typelevel" %% "cats-kernel" % reifiedCatsKernelVersion,
-        "org.typelevel" %% "algebra" % reifiedAlgebraVersion
+        "org.typelevel" %% "cats-kernel" % reifiedCatsKernelVersion.value,
+        "org.typelevel" %% "algebra" % reifiedAlgebraVersion.value
       )
     else Seq.empty
   },
-  Compile / run / fork := scalaVersion.value == ReifiedScala3,
-  Test / fork := scalaVersion.value == ReifiedScala3
+  Compile / run / fork := scalaVersion.value == reifiedScalaVersion.value,
+  Test / fork := scalaVersion.value == reifiedScalaVersion.value
 )
 
 lazy val stockMacroCompilerSettings = Seq(
   scalaVersion := {
     val targetScalaVersion = (ThisBuild / scalaVersion).value
-    if (targetScalaVersion == ReifiedScala3) Scala3 else targetScalaVersion
+    if (targetScalaVersion == reifiedScalaVersion.value) Scala3 else targetScalaVersion
   }
 )
 
@@ -72,8 +110,8 @@ ThisBuild / tlJdkRelease := {
 
 // ThisBuild / scalaVersion := Scala213
 // ThisBuild / crossScalaVersions := Seq(Scala213, Scala3)
-ThisBuild / scalaVersion := ReifiedScala3
-ThisBuild / crossScalaVersions := Seq(Scala213, Scala3, ReifiedScala3)
+ThisBuild / scalaVersion := reifiedScalaVersion.value
+ThisBuild / crossScalaVersions := Seq(Scala213, Scala3, reifiedScalaVersion.value)
 ThisBuild / githubWorkflowJavaVersions := Seq("8", "11", "17").map(JavaSpec.temurin(_))
 
 ThisBuild / homepage := Some(url("https://typelevel.org/spire/"))
@@ -99,6 +137,8 @@ ThisBuild / tlFatalWarnings := false
 
 lazy val root = tlCrossRootProject
   .aggregate(macros, core, extras, examples, laws, platform, tests, util, benchmark)
+  .configureRoot(_.aggregate(reifiedDependencyRoot).settings(reifiedJvmSettings))
+  .configureJVM(_.aggregate(reifiedDependencyRoot).settings(reifiedJvmSettings))
   .settings(spireSettings)
   .settings(unidocSettings)
   .enablePlugins(ScalaUnidocPlugin)
@@ -219,8 +259,8 @@ lazy val reifiedBenchmark: Project = project
   .settings(commonJvmSettings)
   .settings(reifiedJvmSettings)
   .settings(
-    scalaVersion := ReifiedScala3,
-    crossScalaVersions := Seq(ReifiedScala3),
+    scalaVersion := reifiedScalaVersion.value,
+    crossScalaVersions := Seq(reifiedScalaVersion.value),
   )
   .dependsOn(core.jvm)
 
@@ -244,7 +284,7 @@ lazy val buildSettings = Seq(
 lazy val commonDeps = Seq(
   libraryDependencies ++= Seq(
     "org.typelevel" %%% "algebra" % {
-      if (scalaVersion.value == ReifiedScala3) reifiedAlgebraVersion else algebraVersion
+      if (scalaVersion.value == reifiedScalaVersion.value) reifiedAlgebraVersion.value else algebraVersion
     }
   )
 )

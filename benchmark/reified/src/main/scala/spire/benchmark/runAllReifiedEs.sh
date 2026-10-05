@@ -1,20 +1,44 @@
+#!/usr/bin/env bash
+
 #change TARGET and SVG_DIR!!
 
 # assumes:
 #   espresso is in $HOME/graal/espresso
 #   labs jdk is called labs-21 in sdkman
 
+SPIRE_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../../../../../.." && pwd)"
+
+read_version() {
+    awk -F= -v key="$1" '$1 == key { print $2; exit }' "$SPIRE_ROOT/reified-deps/versions.properties"
+}
+
+SCALA_VERSION="$(read_version scalaVersion)"
+LIBRARY_VERSION="$(read_version libraryVersion)"
+CATS_KERNEL_VERSION="$(read_version catsKernelVersion)"
+ALGEBRA_VERSION="$(read_version algebraVersion)"
+
+SCALA_CLASSPATH=(
+    "$SPIRE_ROOT/benchmark/reified/target/scala-$SCALA_VERSION/classes"
+    "$SPIRE_ROOT/core/.jvm/target/scala-$SCALA_VERSION/classes"
+    "$SPIRE_ROOT/macros/.jvm/target/scala-3.2.2/classes"
+    "$SPIRE_ROOT/platform/jvm/target/scala-$SCALA_VERSION/classes"
+    "$SPIRE_ROOT/util/.jvm/target/scala-$SCALA_VERSION/classes"
+    "$HOME/.ivy2/local/org.typelevel/algebra_3/$ALGEBRA_VERSION/jars/algebra_3.jar"
+    "$HOME/.ivy2/local/org.typelevel/cats-kernel_3/$CATS_KERNEL_VERSION/jars/cats-kernel_3.jar"
+    "$HOME/.ivy2/local/org.scala-lang/scala-library/$LIBRARY_VERSION/jars/scala-library.jar"
+)
+printf -v SCALA_CLASSES '%s:' "${SCALA_CLASSPATH[@]}"
+SCALA_CLASSES="${SCALA_CLASSES%:}"
+
 # result txt file:
-TARGET="$HOME/spire/benchmark/reified/src/main/scala/spire/benchmark/spire-dev-afterdebug-9-23.txt"
+TARGET="$SPIRE_ROOT/benchmark/reified/src/main/scala/spire/benchmark/spire-master.txt"
 
 : > "$TARGET"
 
 # where the flame graph goes
-SVG_DIR="$HOME/graal/espresso/svg-afterdebug-9-23"
+SVG_DIR="$HOME/graal/espresso/svg-master"
 
 mkdir -p "$SVG_DIR"
-
-SCALA_CLASSES="$HOME/spire/benchmark/reified/target/scala-3.10.0-RC1-bin-SNAPSHOT-nonbootstrapped/classes:$HOME/spire/core/.jvm/target/scala-3.10.0-RC1-bin-SNAPSHOT-nonbootstrapped/classes:$HOME/spire/macros/.jvm/target/scala-3.2.2/classes:$HOME/spire/platform/jvm/target/scala-3.10.0-RC1-bin-SNAPSHOT-nonbootstrapped/classes:$HOME/spire/util/.jvm/target/scala-3.10.0-RC1-bin-SNAPSHOT-nonbootstrapped/classes:$HOME/.ivy2/local/org.typelevel/algebra_3/2.9.0-reified-SNAPSHOT/jars/algebra_3.jar:$HOME/.ivy2/local/org.typelevel/cats-kernel_3/2.9.0-reified-SNAPSHOT/jars/cats-kernel_3.jar:$HOME/.ivy2/local/org.scala-lang/scala3-library_3/3.10.0-RC1-bin-SNAPSHOT/jars/scala3-library_3.jar:$HOME/.ivy2/local/org.scala-lang/scala-library/3.10.0-RC1-bin-SNAPSHOT/jars/scala-library.jar"
 
 cd "$HOME/graal/espresso"
 
