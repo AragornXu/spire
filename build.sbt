@@ -149,7 +149,18 @@ ThisBuild / tlFatalWarnings := false
 
 lazy val root = tlCrossRootProject
   .aggregate(macros, core, extras, examples, laws, platform, tests, util, benchmark)
-  .configureRoot(_.aggregate(reifiedDependencyRoot).settings(reifiedJvmSettings))
+  .configureRoot(_.aggregate(reifiedDependencyRoot).settings(reifiedJvmSettings).settings(
+    // Local publishing from root targets the JVM libraries only.
+    publishLocal / aggregate := false,
+    publishLocal := {
+      (macros.jvm / publishLocal).value
+      (util.jvm / publishLocal).value
+      (platform.jvm / publishLocal).value
+      (core.jvm / publishLocal).value
+      (extras.jvm / publishLocal).value
+      (laws.jvm / publishLocal).value
+    }
+  ))
   .configureJVM(_.aggregate(reifiedDependencyRoot).settings(reifiedJvmSettings))
   .settings(spireSettings)
   .settings(unidocSettings)
@@ -307,7 +318,13 @@ lazy val commonSettings = Seq(
 
 lazy val commonJsSettings = Seq()
 
-lazy val commonJvmSettings = Seq()
+lazy val commonJvmSettings = Seq(
+  // The reified build has no Scaladoc tool, including for its stock-compiled macros.
+  Compile / packageDoc / publishArtifact := {
+    val enabled = (Compile / packageDoc / publishArtifact).value
+    enabled && (ThisBuild / scalaVersion).value != reifiedScalaVersion.value
+  }
+)
 
 ThisBuild / tlSiteApiUrl := Some(url("https://www.javadoc.io/doc/org.typelevel/spire_2.13/latest/spire/index.html"))
 
