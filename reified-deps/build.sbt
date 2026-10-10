@@ -12,7 +12,12 @@ ThisBuild / organization := "org.typelevel"
 ThisBuild / scalaVersion := reifiedVersions.value.getProperty("scalaVersion")
 ThisBuild / crossScalaVersions := Seq(scalaVersion.value)
 ThisBuild / autoScalaLibrary := false
-ThisBuild / scalacOptions ++= Seq("-source:3.2", "-nowarn")
+// Use the explicitly selected bootstrapped library rather than Zinc's
+// automatic substitution of the nonbootstrapped compiler runtime libraries.
+ThisBuild / classpathOptions ~= { options =>
+  options.withBootLibrary(false).withAutoBoot(false).withFilterLibrary(false)
+}
+ThisBuild / scalacOptions ++= Seq("-source:3.2", "-nowarn", "-experimental")
 ThisBuild / libraryDependencies ++= Seq(
   // "org.scala-lang" % "scala3-library_3" % reifiedVersions.value.getProperty("libraryVersion"),
   "org.scala-lang" % "scala-library" % reifiedVersions.value.getProperty("libraryVersion")

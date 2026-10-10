@@ -72,6 +72,18 @@ lazy val reifiedJvmSettings = Seq(
   update := update.dependsOn(prepareReifiedDependencies).value,
   clean := clean.dependsOn(ThisBuild / cleanReifiedDependencies).value,
   autoScalaLibrary := scalaVersion.value != reifiedScalaVersion.value,
+  // Keep the bootstrapped library on the project classpath; the compiler itself
+  // still runs with its nonbootstrapped ScalaInstance libraries.
+  classpathOptions := {
+    val options = classpathOptions.value
+    if (scalaVersion.value == reifiedScalaVersion.value)
+      options.withBootLibrary(false).withAutoBoot(false).withFilterLibrary(false)
+    else options
+  },
+  scalacOptions ++= {
+    if (scalaVersion.value == reifiedScalaVersion.value) Seq("-experimental")
+    else Seq.empty
+  },
   libraryDependencies ++= {
     if (scalaVersion.value == reifiedScalaVersion.value)
       Seq(
