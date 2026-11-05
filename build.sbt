@@ -81,7 +81,7 @@ lazy val reifiedJvmSettings = Seq(
     else options
   },
   scalacOptions ++= {
-    if (scalaVersion.value == reifiedScalaVersion.value) Seq("-experimental")
+    if (scalaVersion.value == reifiedScalaVersion.value) Seq("-experimental", "-language:experimental.inlineTraits")
     else Seq.empty
   },
   libraryDependencies ++= {

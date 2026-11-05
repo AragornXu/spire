@@ -79,6 +79,7 @@ private[math] trait QuaternionOverRichField[A]
 
   implicit def n: NRoot[A]
   implicit def t: Trig[A]
+  override def dot(x: Quaternion[A], y: Quaternion[A]): A = super[QuaternionOverField].dot(x, y)
 
   def nroot(a: Quaternion[A], k: Int): Quaternion[A] = a.nroot(k)
   override def sqrt(a: Quaternion[A]): Quaternion[A] = a.sqrt

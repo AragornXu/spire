@@ -31,7 +31,7 @@ printf -v SCALA_CLASSES '%s:' "${SCALA_CLASSPATH[@]}"
 SCALA_CLASSES="${SCALA_CLASSES%:}"
 
 # result txt file:
-NAME="spire-master-with-inline"
+NAME="spire-master-inlineTraits"
 TARGET="$SPIRE_ROOT/benchmark/reified/src/main/scala/spire/benchmark/$NAME.txt"
 
 : > "$TARGET"
@@ -39,7 +39,7 @@ TARGET="$SPIRE_ROOT/benchmark/reified/src/main/scala/spire/benchmark/$NAME.txt"
 # where the flame graph goes
 SVG_DIR="$HOME/graal/espresso/$NAME"
 FLAMEGRAPH=false
-INLINING=true
+INLINING=false
 TRACE_INLINING=false
 
 INLINING_OUTPUT_DIR="$HOME/spire/benchmark/reified/src/main/scala/spire/benchmark/inlining-output/"
