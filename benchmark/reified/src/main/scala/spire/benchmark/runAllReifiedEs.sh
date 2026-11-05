@@ -31,14 +31,16 @@ printf -v SCALA_CLASSES '%s:' "${SCALA_CLASSPATH[@]}"
 SCALA_CLASSES="${SCALA_CLASSES%:}"
 
 # result txt file:
-TARGET="$SPIRE_ROOT/benchmark/reified/src/main/scala/spire/benchmark/spire-dev-afterdebug-10-30.txt"
+NAME="spire-master-with-inline"
+TARGET="$SPIRE_ROOT/benchmark/reified/src/main/scala/spire/benchmark/$NAME.txt"
 
 : > "$TARGET"
 
 # where the flame graph goes
-SVG_DIR="$HOME/graal/espresso/svg-afterdebug-10-30"
+SVG_DIR="$HOME/graal/espresso/$NAME"
 FLAMEGRAPH=false
 INLINING=true
+TRACE_INLINING=false
 
 INLINING_OUTPUT_DIR="$HOME/spire/benchmark/reified/src/main/scala/spire/benchmark/inlining-output/"
 
@@ -57,7 +59,9 @@ if [ "$INLINING" = true ]; then
     --compiler.InliningExpansionBudget=$INLINE_BUDGET \
     --compiler.InliningInliningBudget=$INLINE_BUDGET"
     # --compiler.InliningRecursionDepth=$INLINE_RECURSION_DEPTH"
-    TRACE_INLINING="--compiler.TraceInliningDetails"
+    if [ "$TRACE_INLINING" = true ]; then 
+	    TRACE_INLINING_OPT="--compiler.TraceInliningDetails" 
+    fi
 fi
 
 pwd
@@ -76,32 +80,36 @@ mx --env jvm-ce build
 
 mx --env jvm-ce espresso -version >> "$TARGET"
 
-# echo "ComplexMono" >> "$TARGET"
-# mx --env jvm-ce espresso $INLINE_OPT $TRACE_INLINING $CPUSAMPLER --cpusampler.OutputFile="$SVG_DIR/reifiedComplexMono.svg" -cp "$SCALA_CLASSES" spire.benchmark.reified.ComplexMono >> "$TARGET" 2>&1
+echo "inlining option: $INLINE_OPT" >> "$TARGET"
+echo "trace inlining option: $TRACE_INLINING_OPT" >> "$TARGET"
+echo "cpu sampler option: $CPUSAMPLER" >> "$TARGET"
+
+echo "ComplexMono" >> "$TARGET"
+mx --env jvm-ce espresso $INLINE_OPT $TRACE_INLINING_OPT $CPUSAMPLER --cpusampler.OutputFile="$SVG_DIR/reifiedComplexMono.svg" -cp "$SCALA_CLASSES" spire.benchmark.reified.ComplexMono >> "$TARGET" 2>&1
 
 echo "ComplexMega" >> "$TARGET"
-mx --env jvm-ce espresso $INLINE_OPT $TRACE_INLINING $CPUSAMPLER --cpusampler.OutputFile="$SVG_DIR/reifiedComplexMega.svg" -cp "$SCALA_CLASSES" spire.benchmark.reified.ComplexMega >> "$TARGET" 2>&1
+mx --env jvm-ce espresso $INLINE_OPT $TRACE_INLINING_OPT $CPUSAMPLER --cpusampler.OutputFile="$SVG_DIR/reifiedComplexMega.svg" -cp "$SCALA_CLASSES" spire.benchmark.reified.ComplexMega >> "$TARGET" 2>&1
 
-# echo "JetMono" >> "$TARGET"
-# mx --env jvm-ce espresso $INLINE_OPT $TRACE_INLINING $CPUSAMPLER --cpusampler.OutputFile="$SVG_DIR/reifiedJetMono.svg" -cp "$SCALA_CLASSES" spire.benchmark.reified.JetMono >> "$TARGET" 2>&1
+echo "JetMono" >> "$TARGET"
+mx --env jvm-ce espresso $INLINE_OPT $TRACE_INLINING_OPT $CPUSAMPLER --cpusampler.OutputFile="$SVG_DIR/reifiedJetMono.svg" -cp "$SCALA_CLASSES" spire.benchmark.reified.JetMono >> "$TARGET" 2>&1
 
-# echo "JetMega" >> "$TARGET"
-# mx --env jvm-ce espresso $INLINE_OPT $TRACE_INLINING $CPUSAMPLER --cpusampler.OutputFile="$SVG_DIR/reifiedJetMega.svg" -cp "$SCALA_CLASSES" spire.benchmark.reified.JetMega >> "$TARGET" 2>&1
+echo "JetMega" >> "$TARGET"
+mx --env jvm-ce espresso $INLINE_OPT $TRACE_INLINING_OPT $CPUSAMPLER --cpusampler.OutputFile="$SVG_DIR/reifiedJetMega.svg" -cp "$SCALA_CLASSES" spire.benchmark.reified.JetMega >> "$TARGET" 2>&1
 
-# echo "PolynomialMono" >> "$TARGET"
-# mx --env jvm-ce espresso $INLINE_OPT $TRACE_INLINING $CPUSAMPLER --cpusampler.OutputFile="$SVG_DIR/reifiedPolynomialMono.svg" -cp "$SCALA_CLASSES" spire.benchmark.reified.PolynomialMono >> "$TARGET" 2>&1
+echo "PolynomialMono" >> "$TARGET"
+mx --env jvm-ce espresso $INLINE_OPT $TRACE_INLINING_OPT $CPUSAMPLER --cpusampler.OutputFile="$SVG_DIR/reifiedPolynomialMono.svg" -cp "$SCALA_CLASSES" spire.benchmark.reified.PolynomialMono >> "$TARGET" 2>&1
 
-# echo "PolynomialMega" >> "$TARGET"
-# mx --env jvm-ce espresso $INLINE_OPT $TRACE_INLINING $CPUSAMPLER --cpusampler.OutputFile="$SVG_DIR/reifiedPolynomialMega.svg" -cp "$SCALA_CLASSES" spire.benchmark.reified.PolynomialMega >> "$TARGET" 2>&1
+echo "PolynomialMega" >> "$TARGET"
+mx --env jvm-ce espresso $INLINE_OPT $TRACE_INLINING_OPT $CPUSAMPLER --cpusampler.OutputFile="$SVG_DIR/reifiedPolynomialMega.svg" -cp "$SCALA_CLASSES" spire.benchmark.reified.PolynomialMega >> "$TARGET" 2>&1
 
-# echo "QuaternionMono" >> "$TARGET"
-# mx --env jvm-ce espresso $INLINE_OPT $TRACE_INLINING $CPUSAMPLER --cpusampler.OutputFile="$SVG_DIR/reifiedQuaternionMono.svg" -cp "$SCALA_CLASSES" spire.benchmark.reified.QuaternionMono >> "$TARGET" 2>&1
+echo "QuaternionMono" >> "$TARGET"
+mx --env jvm-ce espresso $INLINE_OPT $TRACE_INLINING_OPT $CPUSAMPLER --cpusampler.OutputFile="$SVG_DIR/reifiedQuaternionMono.svg" -cp "$SCALA_CLASSES" spire.benchmark.reified.QuaternionMono >> "$TARGET" 2>&1
 
-# echo "QuaternionMega" >> "$TARGET"
-# mx --env jvm-ce espresso $INLINE_OPT $TRACE_INLINING $CPUSAMPLER --cpusampler.OutputFile="$SVG_DIR/reifiedQuaternionMega.svg" -cp "$SCALA_CLASSES" spire.benchmark.reified.QuaternionMega >> "$TARGET" 2>&1
+echo "QuaternionMega" >> "$TARGET"
+mx --env jvm-ce espresso $INLINE_OPT $TRACE_INLINING_OPT $CPUSAMPLER --cpusampler.OutputFile="$SVG_DIR/reifiedQuaternionMega.svg" -cp "$SCALA_CLASSES" spire.benchmark.reified.QuaternionMega >> "$TARGET" 2>&1
 
-# echo "RingMono" >> "$TARGET"
-# mx --env jvm-ce espresso $INLINE_OPT $TRACE_INLINING $CPUSAMPLER --cpusampler.OutputFile="$SVG_DIR/reifiedRingMono.svg" -cp "$SCALA_CLASSES" spire.benchmark.reified.RingMono >> "$TARGET" 2>&1
+echo "RingMono" >> "$TARGET"
+mx --env jvm-ce espresso $INLINE_OPT $TRACE_INLINING_OPT $CPUSAMPLER --cpusampler.OutputFile="$SVG_DIR/reifiedRingMono.svg" -cp "$SCALA_CLASSES" spire.benchmark.reified.RingMono >> "$TARGET" 2>&1
 
-# echo "RingMega" >> "$TARGET"
-# mx --env jvm-ce espresso $INLINE_OPT $TRACE_INLINING $CPUSAMPLER --cpusampler.OutputFile="$SVG_DIR/reifiedRingMega.svg" -cp "$SCALA_CLASSES" spire.benchmark.reified.RingMega >> "$TARGET" 2>&1
+echo "RingMega" >> "$TARGET"
+mx --env jvm-ce espresso $INLINE_OPT $TRACE_INLINING_OPT $CPUSAMPLER --cpusampler.OutputFile="$SVG_DIR/reifiedRingMega.svg" -cp "$SCALA_CLASSES" spire.benchmark.reified.RingMega >> "$TARGET" 2>&1
